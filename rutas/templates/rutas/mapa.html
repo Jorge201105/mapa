@@ -1,0 +1,58 @@
+{% extends 'rutas/base.html' %}
+
+{% block extra_head %}
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h2>Mapa de Distribución</h2>
+
+    <form method="post" action="{% url 'agregar_punto' %}">
+        {% csrf_token %}
+        <label for="nombre">Nombre del Punto:</label>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" name="direccion" required><br><br>
+        <button type="submit">Agregar Punto de Entrega</button>
+    </form>
+
+    <hr>
+
+    <h3>Puntos de Entrega Actuales:</h3>
+    <ul id="puntos-lista">
+        {% for punto in puntos_entrega %}
+            <li>{{ punto.nombre }} - {{ punto.direccion }} (Orden: {{ punto.orden_optimo|default:"N/A" }})</li>
+        {% empty %}
+            <li>No hay puntos de entrega aún.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <form method="post" action="{% url 'optimizar_ruta' %}">
+        {% csrf_token %}
+        <label for="lat_inicio">Latitud de Inicio:</label>
+        <input type="text" id="lat_inicio" name="lat_inicio" value="-33.4489" required><br><br> {# Ejemplo de Santiago #}
+        <label for="lng_inicio">Longitud de Inicio:</label>
+        <input type="text" id="lng_inicio" name="lng_inicio" value="-70.6693" required><br><br> {# Ejemplo de Santiago #}
+        <button type="submit">Optimizar Ruta con IA</button>
+    </form>
+
+    <hr>
+
+    <div id="map"></div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        var google_maps_api_key = "{{ google_maps_api_key }}";
+        var puntos_entrega_data = JSON.parse('{{ puntos_entrega_json|escapejs }}');
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap"></script>
+{% endblock %}
